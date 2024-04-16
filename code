@@ -1,0 +1,82 @@
+# import packages:
+import numpy as np 
+import pandas as pd 
+import matplotlib.pyplot as plt
+import sklearn
+import seaborn as sns
+from sklearn import preprocessing
+from sklearn.cluster import KMeans
+sns.set()
+import warnings
+warnings.filterwarnings('ignore')
+
+# read in data:
+raw_data = pd.read_csv('wine_data.csv', delimiter = ';')
+raw_data.head()
+
+# create simple dataframe of variables of interest:
+raw_data.columns.get_loc('Flavinoids')
+raw_data.columns.get_loc('Color Intensity')
+
+flavinoids = raw_data.iloc[:,6:7]
+colour_intensity = raw_data.iloc[:,9:10]
+data = pd.concat([flavinoids, colour_intensity], axis =1)
+data.head()
+
+# plot unclustered data:
+plt.scatter(data['Flavinoids'], data['Color Intensity'])
+plt.xlabel('Flavinoids', size = 10)
+plt.ylabel('Colour Intensity', size = 10)
+plt.title('Unclustered Wine Data', size = 12)
+
+# scale data:
+scaled_inputs = preprocessing.scale(data)
+
+# Elbow Method for number of clusters:
+wcss = []
+for i in range (1,11):
+    km = KMeans(i)
+    km.fit(scaled_inputs)
+    inertia = km.inertia_
+    wcss.append(inertia)
+wcss
+
+no_of_clusters = list(range(1,11))
+plt.plot(no_of_clusters, wcss)
+plt.xlabel('Number of Clusters', size = 10)
+plt.ylabel('Within-Cluster Sum of Squares (WCSS)', size = 10)
+plt.title('The Elbow Method', size = 12)
+
+# fit model with 3 clusters: 
+km_3 = KMeans(3)
+km_3.fit(scaled_inputs)
+
+clusters =data.copy()
+clusters['cluster prediction'] = km_3.fit_predict(scaled_inputs)
+
+# plot clustered data:
+plt.scatter(data['Flavinoids'], data['Color Intensity'], c = clusters['cluster prediction'], cmap = 'Accent' )
+plt.xlabel('Flavinoids', size = 10)
+plt.ylabel('Colour Intensity', size = 10)
+plt.title('Figure 1: K-Means Clustered Wine Data', size = 12)
+
+# real data:
+real_data = pd.read_csv('wine_data_with_cultivar.csv', delimiter = ';')
+real_data.head()
+
+real_data.columns.get_loc('Cultivar')
+real_data.columns.get_loc('Flavinoids')
+real_data.columns.get_loc('Color Intensity')
+
+# create a simple dataframe with variables of interest:
+cultivar = real_data.iloc[:, 0:1]
+flavinoids = real_data.iloc[:, 7:8]
+colour_intensity = real_data.iloc[:, 10:11]
+data_2 = pd.concat([cultivar, flavinoids, colour_intensity], axis = 1)
+data_2.head()  
+
+# plot the real data: 
+plt.scatter(data_2['Flavinoids'], data_2['Color Intensity'], c = data_2['Cultivar'], cmap= 'Accent')
+plt.xlabel('Flavinoids', size = 10)
+plt.ylabel('Colour Intensity', size = 10)
+plt.title('Figure 2: Real Clustered Wine Data', size = 12);
